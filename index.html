@@ -198,6 +198,14 @@ document.addEventListener('DOMContentLoaded', () => {
         { id: '5', cmecId: '321654987', component: 'NME 10', status: 'Enrolled', connectionStatus: 'offline', isFlagged: false, needsMakeUp: false, absenceDetails: null, accommodations: [], flaggedIssue: null, auditTrail: [{ timestamp: sessionStartTime, action: 'Session Started', actor: 'System' }] },
         { id: '6', cmecId: '234567890', component: 'LTE10', status: 'Absent', connectionStatus: 'offline', isFlagged: false, needsMakeUp: true, absenceDetails: { reason: 'Illness', comment: 'Sent home sick.' }, accommodations: [], flaggedIssue: null, auditTrail: [{ timestamp: sessionStartTime, action: 'Session Started', actor: 'System' }, { timestamp: new Date('2025-09-03T09:55:00-04:00'), action: 'Marked Absent', details: { reason: 'Illness', comment: 'Sent home sick.'}, actor: 'Invigilator'}] },
         { id: '7', cmecId: '345678901', component: 'NME 10', status: 'Writing', connectionStatus: 'online', isFlagged: false, needsMakeUp: false, absenceDetails: null, accommodations: ['Extra Time'], flaggedIssue: null, auditTrail: [{ timestamp: sessionStartTime, action: 'Session Started', actor: 'System' }, { timestamp: new Date('2025-09-03T10:02:00-04:00'), action: 'Logged Accommodations', details: { used: ['Extra Time']}, actor: 'Invigilator'}] },
+        { id: '8', cmecId: '888777666', component: 'NME 10', status: 'Writing', connectionStatus: 'online', isFlagged: false, needsMakeUp: false, absenceDetails: null, accommodations: [], flaggedIssue: null, auditTrail: [{ timestamp: sessionStartTime, action: 'Session Started', actor: 'System' }] },
+        { id: '9', cmecId: '999888777', component: 'LTE10', status: 'Enrolled', connectionStatus: 'offline', isFlagged: false, needsMakeUp: false, absenceDetails: null, accommodations: [], flaggedIssue: null, auditTrail: [{ timestamp: sessionStartTime, action: 'Session Started', actor: 'System' }] },
+        { id: '10', cmecId: '111222333', component: 'NME 10', status: 'Writing', connectionStatus: 'disconnected', isFlagged: false, needsMakeUp: false, absenceDetails: null, accommodations: [], flaggedIssue: null, auditTrail: [{ timestamp: sessionStartTime, action: 'Session Started', actor: 'System' }, { timestamp: new Date('2025-09-03T10:30:00-04:00'), action: 'Student disconnected', actor: 'System'}] },
+        { id: '11', cmecId: '222333444', component: 'LTE10', status: 'Absent', connectionStatus: 'offline', isFlagged: false, needsMakeUp: true, absenceDetails: { reason: 'No Show', comment: 'Marked absent by invigilator.' }, accommodations: [], flaggedIssue: null, auditTrail: [{ timestamp: sessionStartTime, action: 'Session Started', actor: 'System' }, { timestamp: new Date('2025-09-03T10:15:00-04:00'), action: 'Marked Absent', details: { reason: 'No Show', comment: 'Marked absent by invigilator.'}, actor: 'Invigilator'}] },
+        { id: '12', cmecId: '333444555', component: 'NME 10', status: 'Writing', connectionStatus: 'online', isFlagged: true, needsMakeUp: false, absenceDetails: null, accommodations: [], flaggedIssue: { type: 'Slow Loading', comment: 'Pages taking long to load.', timestamp: new Date('2025-09-03T10:55:00-04:00')}, auditTrail: [{ timestamp: sessionStartTime, action: 'Session Started', actor: 'System' }, { timestamp: new Date('2025-09-03T10:55:00-04:00'), action: 'Flagged Issue', details: { type: 'Slow Loading', comment: 'Pages taking long to load.'}, actor: 'Invigilator'}] },
+        { id: '13', cmecId: '444555666', component: 'LTE10', status: 'Writing', connectionStatus: 'online', isFlagged: false, needsMakeUp: false, absenceDetails: null, accommodations: ['Reader', 'Separate Setting'], flaggedIssue: null, auditTrail: [{ timestamp: sessionStartTime, action: 'Session Started', actor: 'System' }, { timestamp: new Date('2025-09-03T10:03:00-04:00'), action: 'Logged Accommodations', details: { used: ['Reader', 'Separate Setting']}, actor: 'Invigilator'}] },
+        { id: '14', cmecId: '555666777', component: 'NME 10', status: 'Enrolled', connectionStatus: 'offline', isFlagged: false, needsMakeUp: false, absenceDetails: null, accommodations: [], flaggedIssue: null, auditTrail: [{ timestamp: sessionStartTime, action: 'Session Started', actor: 'System' }] },
+        { id: '15', cmecId: '666777888', component: 'LTE10', status: 'Writing', connectionStatus: 'online', isFlagged: false, needsMakeUp: false, absenceDetails: null, accommodations: [], flaggedIssue: null, auditTrail: [{ timestamp: sessionStartTime, action: 'Session Started', actor: 'System' }] }
     ];
     
     let students = JSON.parse(JSON.stringify(initialStudents)); // Deep copy
@@ -242,7 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const student = students.find(s => s.id === studentId);
         if (student) {
             student.auditTrail.push({
-                timestamp: new Date('2025-09-03T10:48:00-04:00'), // Use static current time
+                timestamp: new Date('2025-09-03T11:04:00-04:00'), // Use static current time
                 action,
                 details,
                 actor: 'Invigilator'
@@ -262,7 +270,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderTable(studentData) {
         tableBody.innerHTML = '';
-        lastUpdatedTimestamp.textContent = `Last updated: 10:48:00 AM`;
+        lastUpdatedTimestamp.textContent = `Last updated: 11:04:00 AM`;
 
         if (studentData.length === 0) {
             tableBody.innerHTML = `<tr><td colspan="4" class="text-center py-8 text-gray-500">No students found for this filter.</td></tr>`;
@@ -571,4 +579,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
 
