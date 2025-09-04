@@ -25,9 +25,6 @@
         .status-dot.disconnected { background-color: #ffc107; }
         .filter-btn { border: 1px solid #ccc; background-color: #f8f9fa; }
         .filter-btn.active { background-color: #2c5cc5; color: white; border-color: #2c5cc5; }
-        .actions-menu { display: none; position: absolute; right: 0; top: 100%; margin-top: 4px; background-color: white; border: 1px solid #e0e0e0; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); z-index: 10; width: 180px; }
-        .actions-menu button { display: block; width: 100%; text-align: left; padding: 8px 12px; font-size: 14px; }
-        .actions-menu button:hover { background-color: #f0f2f5; }
     </style>
 </head>
 <body class="text-gray-800">
@@ -112,9 +109,8 @@
                         <table class="w-full text-sm text-left">
                             <thead class="border-b-2 border-gray-300">
                                 <tr>
-                                    <th scope="col" class="py-2 px-3 font-medium text-gray-700 w-[50%]">CMEC ID</th>
-                                    <th scope="col" class="py-2 px-3 font-medium text-gray-700 w-[25%]">Status</th>
-                                    <th scope="col" class="py-2 px-3 font-medium text-gray-700 w-[25%] text-right">Actions</th>
+                                    <th scope="col" class="py-2 px-3 font-medium text-gray-700 w-[60%]">CMEC ID</th>
+                                    <th scope="col" class="py-2 px-3 font-medium text-gray-700 w-[40%]">Status</th>
                                 </tr>
                             </thead>
                             <tbody id="student-table-body">
@@ -128,22 +124,6 @@
     </div>
 
     <!-- Modals -->
-    <div id="action-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
-        <div class="modal-content bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
-            <div class="p-4 border-b flex justify-between items-center">
-                <h2 id="modal-title" class="text-xl font-semibold text-gray-800">Action</h2>
-                <button id="close-modal-btn" class="text-gray-500 hover:text-gray-800">&times;</button>
-            </div>
-            <div id="modal-body" class="p-6">
-                <!-- Modal content injected by JS -->
-            </div>
-            <div class="p-4 bg-gray-50 flex justify-end space-x-4 border-t">
-                <button id="modal-cancel-btn" class="btn btn-secondary">Cancel</button>
-                <button id="modal-confirm-btn" class="btn btn-primary">Confirm</button>
-            </div>
-        </div>
-    </div>
-    
     <div id="tech-support-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
          <div class="modal-content bg-white rounded-lg shadow-xl p-8 w-full max-w-lg mx-4">
             <h3 class="text-xl font-medium text-gray-900 mb-4">Information centre hours:</h3>
@@ -189,29 +169,27 @@
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     // --- MOCK DATA ---
-    const sessionStartTime = new Date('2025-09-03T10:00:00-04:00'); // EDT for Toronto
+    const sessionStartTime = new Date('2025-09-04T16:01:00-04:00'); // EDT for Toronto
     const initialStudents = [
-        { id: '1', cmecId: '123456789', component: 'NME 10', status: 'Writing', connectionStatus: 'online', isFlagged: false, needsMakeUp: false, absenceDetails: null, accommodations: [], flaggedIssue: null, auditTrail: [{ timestamp: sessionStartTime, action: 'Session Started', actor: 'System' }] },
-        { id: '2', cmecId: '987654321', component: 'NME 10', status: 'Enrolled', connectionStatus: 'offline', isFlagged: false, needsMakeUp: false, absenceDetails: null, accommodations: [], flaggedIssue: null, auditTrail: [{ timestamp: sessionStartTime, action: 'Session Started', actor: 'System' }] },
-        { id: '3', cmecId: '456789123', component: 'LTE10', status: 'Writing', connectionStatus: 'online', isFlagged: false, needsMakeUp: false, absenceDetails: null, accommodations: [], flaggedIssue: null, auditTrail: [{ timestamp: sessionStartTime, action: 'Session Started', actor: 'System' }] },
-        { id: '4', cmecId: '789123456', component: 'LTE10', status: 'Writing', connectionStatus: 'disconnected', isFlagged: true, needsMakeUp: false, absenceDetails: null, accommodations: [], flaggedIssue: { type: 'Glitch', comment: 'Screen froze.', timestamp: new Date('2025-09-03T10:05:00-04:00') }, auditTrail: [{ timestamp: sessionStartTime, action: 'Session Started', actor: 'System' }, { timestamp: new Date('2025-09-03T10:05:00-04:00'), action: 'Flagged Issue', details: { type: 'Glitch', comment: 'Screen froze.' }, actor: 'Invigilator'}] },
-        { id: '5', cmecId: '321654987', component: 'NME 10', status: 'Enrolled', connectionStatus: 'offline', isFlagged: false, needsMakeUp: false, absenceDetails: null, accommodations: [], flaggedIssue: null, auditTrail: [{ timestamp: sessionStartTime, action: 'Session Started', actor: 'System' }] },
-        { id: '6', cmecId: '234567890', component: 'LTE10', status: 'Absent', connectionStatus: 'offline', isFlagged: false, needsMakeUp: true, absenceDetails: { reason: 'Illness', comment: 'Sent home sick.' }, accommodations: [], flaggedIssue: null, auditTrail: [{ timestamp: sessionStartTime, action: 'Session Started', actor: 'System' }, { timestamp: new Date('2025-09-03T09:55:00-04:00'), action: 'Marked Absent', details: { reason: 'Illness', comment: 'Sent home sick.'}, actor: 'Invigilator'}] },
-        { id: '7', cmecId: '345678901', component: 'NME 10', status: 'Writing', connectionStatus: 'online', isFlagged: false, needsMakeUp: false, absenceDetails: null, accommodations: ['Extra Time'], flaggedIssue: null, auditTrail: [{ timestamp: sessionStartTime, action: 'Session Started', actor: 'System' }, { timestamp: new Date('2025-09-03T10:02:00-04:00'), action: 'Logged Accommodations', details: { used: ['Extra Time']}, actor: 'Invigilator'}] },
-        { id: '8', cmecId: '888777666', component: 'NME 10', status: 'Writing', connectionStatus: 'online', isFlagged: false, needsMakeUp: false, absenceDetails: null, accommodations: [], flaggedIssue: null, auditTrail: [{ timestamp: sessionStartTime, action: 'Session Started', actor: 'System' }] },
-        { id: '9', cmecId: '999888777', component: 'LTE10', status: 'Enrolled', connectionStatus: 'offline', isFlagged: false, needsMakeUp: false, absenceDetails: null, accommodations: [], flaggedIssue: null, auditTrail: [{ timestamp: sessionStartTime, action: 'Session Started', actor: 'System' }] },
-        { id: '10', cmecId: '111222333', component: 'NME 10', status: 'Writing', connectionStatus: 'disconnected', isFlagged: false, needsMakeUp: false, absenceDetails: null, accommodations: [], flaggedIssue: null, auditTrail: [{ timestamp: sessionStartTime, action: 'Session Started', actor: 'System' }, { timestamp: new Date('2025-09-03T10:30:00-04:00'), action: 'Student disconnected', actor: 'System'}] },
-        { id: '11', cmecId: '222333444', component: 'LTE10', status: 'Absent', connectionStatus: 'offline', isFlagged: false, needsMakeUp: true, absenceDetails: { reason: 'No Show', comment: 'Marked absent by invigilator.' }, accommodations: [], flaggedIssue: null, auditTrail: [{ timestamp: sessionStartTime, action: 'Session Started', actor: 'System' }, { timestamp: new Date('2025-09-03T10:15:00-04:00'), action: 'Marked Absent', details: { reason: 'No Show', comment: 'Marked absent by invigilator.'}, actor: 'Invigilator'}] },
-        { id: '12', cmecId: '333444555', component: 'NME 10', status: 'Writing', connectionStatus: 'online', isFlagged: true, needsMakeUp: false, absenceDetails: null, accommodations: [], flaggedIssue: { type: 'Slow Loading', comment: 'Pages taking long to load.', timestamp: new Date('2025-09-03T10:55:00-04:00')}, auditTrail: [{ timestamp: sessionStartTime, action: 'Session Started', actor: 'System' }, { timestamp: new Date('2025-09-03T10:55:00-04:00'), action: 'Flagged Issue', details: { type: 'Slow Loading', comment: 'Pages taking long to load.'}, actor: 'Invigilator'}] },
-        { id: '13', cmecId: '444555666', component: 'LTE10', status: 'Writing', connectionStatus: 'online', isFlagged: false, needsMakeUp: false, absenceDetails: null, accommodations: ['Reader', 'Separate Setting'], flaggedIssue: null, auditTrail: [{ timestamp: sessionStartTime, action: 'Session Started', actor: 'System' }, { timestamp: new Date('2025-09-03T10:03:00-04:00'), action: 'Logged Accommodations', details: { used: ['Reader', 'Separate Setting']}, actor: 'Invigilator'}] },
-        { id: '14', cmecId: '555666777', component: 'NME 10', status: 'Enrolled', connectionStatus: 'offline', isFlagged: false, needsMakeUp: false, absenceDetails: null, accommodations: [], flaggedIssue: null, auditTrail: [{ timestamp: sessionStartTime, action: 'Session Started', actor: 'System' }] },
-        { id: '15', cmecId: '666777888', component: 'LTE10', status: 'Writing', connectionStatus: 'online', isFlagged: false, needsMakeUp: false, absenceDetails: null, accommodations: [], flaggedIssue: null, auditTrail: [{ timestamp: sessionStartTime, action: 'Session Started', actor: 'System' }] }
+        { id: '1', cmecId: '123456789', component: 'NME 10', status: 'Writing', connectionStatus: 'online', isFlagged: false, needsMakeUp: false, absenceDetails: null, accommodations: [], flaggedIssue: null },
+        { id: '2', cmecId: '987654321', component: 'NME 10', status: 'Enrolled', connectionStatus: 'offline', isFlagged: false, needsMakeUp: false, absenceDetails: null, accommodations: [], flaggedIssue: null },
+        { id: '3', cmecId: '456789123', component: 'LTE10', status: 'Writing', connectionStatus: 'online', isFlagged: false, needsMakeUp: false, absenceDetails: null, accommodations: [], flaggedIssue: null },
+        { id: '4', cmecId: '789123456', component: 'LTE10', status: 'Writing', connectionStatus: 'disconnected', isFlagged: true, needsMakeUp: false, absenceDetails: null, accommodations: [], flaggedIssue: { type: 'Glitch', comment: 'Screen froze.', timestamp: new Date('2025-09-04T16:01:00-04:00') } },
+        { id: '5', cmecId: '321654987', component: 'NME 10', status: 'Enrolled', connectionStatus: 'offline', isFlagged: false, needsMakeUp: false, absenceDetails: null, accommodations: [], flaggedIssue: null },
+        { id: '6', cmecId: '234567890', component: 'LTE10', status: 'Absent', connectionStatus: 'offline', isFlagged: false, needsMakeUp: true, absenceDetails: { reason: 'Illness', comment: 'Sent home sick.' }, accommodations: [], flaggedIssue: null },
+        { id: '7', cmecId: '345678901', component: 'NME 10', status: 'Writing', connectionStatus: 'online', isFlagged: false, needsMakeUp: false, absenceDetails: null, accommodations: ['Extra Time'], flaggedIssue: null },
+        { id: '8', cmecId: '888777666', component: 'NME 10', status: 'Writing', connectionStatus: 'online', isFlagged: false, needsMakeUp: false, absenceDetails: null, accommodations: [], flaggedIssue: null },
+        { id: '9', cmecId: '999888777', component: 'LTE10', status: 'Enrolled', connectionStatus: 'offline', isFlagged: false, needsMakeUp: false, absenceDetails: null, accommodations: [], flaggedIssue: null },
+        { id: '10', cmecId: '111222333', component: 'NME 10', status: 'Writing', connectionStatus: 'disconnected', isFlagged: false, needsMakeUp: false, absenceDetails: null, accommodations: [], flaggedIssue: null },
+        { id: '11', cmecId: '222333444', component: 'LTE10', status: 'Absent', connectionStatus: 'offline', isFlagged: false, needsMakeUp: true, absenceDetails: { reason: 'No Show', comment: 'Marked absent by invigilator.' }, accommodations: [], flaggedIssue: null },
+        { id: '12', cmecId: '333444555', component: 'NME 10', status: 'Writing', connectionStatus: 'online', isFlagged: true, needsMakeUp: false, absenceDetails: null, accommodations: [], flaggedIssue: { type: 'Slow Loading', comment: 'Pages taking long to load.', timestamp: new Date('2025-09-04T16:01:00-04:00')}},
+        { id: '13', cmecId: '444555666', component: 'LTE10', status: 'Writing', connectionStatus: 'online', isFlagged: false, needsMakeUp: false, absenceDetails: null, accommodations: ['Reader', 'Separate Setting'], flaggedIssue: null },
+        { id: '14', cmecId: '555666777', component: 'NME 10', status: 'Enrolled', connectionStatus: 'offline', isFlagged: false, needsMakeUp: false, absenceDetails: null, accommodations: [], flaggedIssue: null },
+        { id: '15', cmecId: '666777888', component: 'LTE10', status: 'Writing', connectionStatus: 'online', isFlagged: false, needsMakeUp: false, absenceDetails: null, accommodations: [], flaggedIssue: null }
     ];
     
     let students = JSON.parse(JSON.stringify(initialStudents)); // Deep copy
     let currentFilter = 'all';
-    let currentModalAction = null;
-    let currentStudentId = null;
 
     // --- DOM ELEMENTS ---
     const loginPage = document.getElementById('login-page');
@@ -229,13 +207,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const countIssues = document.getElementById('count-issues');
 
     // Modals
-    const actionModal = document.getElementById('action-modal');
-    const modalTitle = document.getElementById('modal-title');
-    const modalBody = document.getElementById('modal-body');
-    const closeModalBtn = document.getElementById('close-modal-btn');
-    const modalCancelBtn = document.getElementById('modal-cancel-btn');
-    const modalConfirmBtn = document.getElementById('modal-confirm-btn');
-
     const techSupportBtn = document.getElementById('tech-support-btn');
     const techSupportModal = document.getElementById('tech-support-modal');
     const dismissSupportModalBtn = document.getElementById('dismiss-support-modal');
@@ -244,21 +215,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const cmecIdReentryModal = document.getElementById('cmec-id-reentry-modal');
     const reentryPassword = document.getElementById('reentry-password');
     const closeReentryModalBtn = document.getElementById('close-reentry-modal');
-
-    // --- UTILITY FUNCTIONS ---
-    const logAuditEvent = (studentId, action, details = {}) => {
-        const student = students.find(s => s.id === studentId);
-        if (student) {
-            student.auditTrail.push({
-                timestamp: new Date('2025-09-03T11:04:00-04:00'), // Use static current time
-                action,
-                details,
-                actor: 'Invigilator'
-            });
-        }
-    };
-
-    const formatTimestamp = (date) => new Date(date).toLocaleString('en-US', { timeZone: 'America/Toronto', dateStyle: 'short', timeStyle: 'short' });
 
     // --- RENDER FUNCTIONS ---
     function updateSummaryCounts() {
@@ -270,16 +226,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderTable(studentData) {
         tableBody.innerHTML = '';
-        lastUpdatedTimestamp.textContent = `Last updated: 11:04:00 AM`;
+        lastUpdatedTimestamp.textContent = `Last updated: 4:01:00 PM`;
 
         if (studentData.length === 0) {
-            tableBody.innerHTML = `<tr><td colspan="4" class="text-center py-8 text-gray-500">No students found for this filter.</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="2" class="text-center py-8 text-gray-500">No students found for this filter.</td></tr>`;
             return;
         }
 
         studentData.forEach(student => {
             const row = document.createElement('tr');
             row.className = 'border-b border-gray-200 hover:bg-gray-50';
+            if (student.connectionStatus === 'disconnected') {
+                 row.classList.add('cursor-pointer');
+            }
             row.dataset.studentId = student.id;
 
             let connectionIndicator = '';
@@ -302,22 +261,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span class="font-medium ${statusColor}">${student.status}</span>
                         ${student.isFlagged ? '<i class="fas fa-flag text-purple-600 ml-2" title="Issue Flagged"></i>' : ''}
                         ${student.needsMakeUp ? '<i class="fas fa-calendar-alt text-yellow-600 ml-2" title="Make-up Needed"></i>' : ''}
-                    </div>
-                </td>
-                <td class="py-3 px-3 text-right">
-                    <div class="relative inline-block">
-                        <button class="action-btn btn btn-secondary text-xs py-1 px-3 flex items-center" data-student-id="${student.id}">
-                            Actions
-                            <i class="fas fa-chevron-down ml-2 text-xs opacity-75"></i>
-                        </button>
-                        <div class="actions-menu">
-                            <button class="action-menu-item" data-action="mark-absent">Mark Absent</button>
-                            <button class="action-menu-item" data-action="schedule-makeup">Schedule Make-up</button>
-                            <button class="action-menu-item" data-action="flag-issue">Flag Issue</button>
-                            <button class="action-menu-item" data-action="log-accommodations">Log Accommodations</button>
-                            <hr class="my-1">
-                            <button class="action-menu-item" data-action="view-details">View Details / Audit</button>
-                        </div>
                     </div>
                 </td>
             `;
@@ -350,140 +293,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- MODAL & ACTION LOGIC ---
-
-    function openModal(action, studentId) {
-        currentModalAction = action;
-        currentStudentId = studentId;
-        const student = students.find(s => s.id === studentId);
-        if (!student) return;
-
-        let title = '';
-        let bodyHtml = '';
-        
-        switch (action) {
-            case 'mark-absent':
-                title = `Mark Absent: ${student.cmecId}`;
-                bodyHtml = `
-                    <div class="space-y-4">
-                        <div>
-                            <label for="absence-reason" class="block text-sm font-medium text-gray-700">Reason for Absence</label>
-                            <select id="absence-reason" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm">
-                                <option value="Illness">Illness</option>
-                                <option value="Technical Issue">Technical Issue</option>
-                                <option value="No Show">No Show</option>
-                                <option value="Other">Other</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="absence-comment" class="block text-sm font-medium text-gray-700">Optional Comment</label>
-                            <textarea id="absence-comment" rows="3" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"></textarea>
-                        </div>
-                    </div>
-                `;
-                break;
-            case 'schedule-makeup':
-                title = `Schedule Make-up: ${student.cmecId}`;
-                bodyHtml = `
-                    <p class="text-sm mb-4">Select a date and time for the make-up session.</p>
-                    <input type="datetime-local" id="makeup-datetime" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
-                `;
-                break;
-            case 'flag-issue':
-                title = `Flag Issue: ${student.cmecId}`;
-                bodyHtml = `
-                     <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Issue Type</label>
-                            <select id="issue-type" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm">
-                                <option value="Slow Loading">Slow Loading</option>
-                                <option value="Glitch">Glitch / Frozen Screen</option>
-                                <option value="Login Problem">Login Problem</option>
-                                <option value="Other">Other</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="issue-comment" class="block text-sm font-medium text-gray-700">Description</label>
-                            <textarea id="issue-comment" rows="3" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"></textarea>
-                        </div>
-                    </div>
-                `;
-                break;
-            case 'log-accommodations':
-                 title = `Log Accommodations: ${student.cmecId}`;
-                 const accommodationsList = ['Extra Time', 'Scribe', 'Reader', 'Separate Setting'];
-                 bodyHtml = accommodationsList.map(acc => `
-                    <div class="flex items-center">
-                      <input id="acc-${acc.replace(/\s/g, '')}" type="checkbox" ${student.accommodations.includes(acc) ? 'checked' : ''} value="${acc}" class="h-4 w-4 text-indigo-600 border-gray-300 rounded">
-                      <label for="acc-${acc.replace(/\s/g, '')}" class="ml-3 block text-sm text-gray-700">${acc}</label>
-                    </div>
-                 `).join('');
-                 break;
-            case 'view-details':
-                title = `Details: ${student.cmecId}`;
-                let auditHtml = student.auditTrail.map(log => `
-                    <li class="border-l-2 pl-4 pb-4">
-                        <p class="font-medium text-sm">${log.action} <span class="text-gray-500 font-normal">by ${log.actor}</span></p>
-                        <p class="text-xs text-gray-500">${formatTimestamp(log.timestamp)}</p>
-                        ${log.details && Object.keys(log.details).length > 0 ? `<p class="text-xs text-gray-600 mt-1 bg-gray-100 p-1 rounded">Details: ${JSON.stringify(log.details)}</p>` : ''}
-                    </li>
-                `).reverse().join('');
-                bodyHtml = `
-                    <h4 class="font-semibold mb-2">Audit Trail</h4>
-                    <ul class="space-y-2">${auditHtml}</ul>
-                `;
-                break;
-        }
-
-        modalTitle.textContent = title;
-        modalBody.innerHTML = bodyHtml;
-        modalConfirmBtn.style.display = (action === 'view-details') ? 'none' : 'block';
-        actionModal.classList.remove('hidden');
-    }
-
-    function closeModal() {
-        actionModal.classList.add('hidden');
-        currentModalAction = null;
-        currentStudentId = null;
-    }
-
-    function handleConfirm() {
-        const student = students.find(s => s.id === currentStudentId);
-        if (!student) return;
-
-        switch (currentModalAction) {
-            case 'mark-absent':
-                const reason = document.getElementById('absence-reason').value;
-                const comment = document.getElementById('absence-comment').value;
-                student.status = 'Absent';
-                student.needsMakeUp = true;
-                student.absenceDetails = { reason, comment };
-                logAuditEvent(currentStudentId, 'Marked Absent', { reason, comment });
-                break;
-            case 'schedule-makeup':
-                const datetime = document.getElementById('makeup-datetime').value;
-                student.needsMakeUp = true; // Could also move to a 'Scheduled' state
-                logAuditEvent(currentStudentId, 'Scheduled Make-up', { datetime });
-                break;
-            case 'flag-issue':
-                const type = document.getElementById('issue-type').value;
-                const issueComment = document.getElementById('issue-comment').value;
-                student.isFlagged = true;
-                student.flaggedIssue = { type, comment: issueComment, timestamp: new Date() };
-                logAuditEvent(currentStudentId, 'Flagged Issue', { type, comment: issueComment });
-                break;
-            case 'log-accommodations':
-                 student.accommodations = [];
-                 document.querySelectorAll('#modal-body input[type="checkbox"]:checked').forEach(cb => {
-                    student.accommodations.push(cb.value);
-                 });
-                 logAuditEvent(currentStudentId, 'Logged Accommodations', { used: student.accommodations });
-                 break;
-        }
-
-        closeModal();
-        updateView();
-    }
-    
     function openReentryPasswordModal(studentId) {
         const student = students.find(s => s.id === studentId);
         if (!student) return;
@@ -499,7 +308,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const student = students.find(s => s.id === studentId);
         if (student) {
             student.connectionStatus = 'online';
-            logAuditEvent(studentId, 'Re-entry password issued');
         }
         reentryPasswordModal.classList.add('hidden');
         updateView();
@@ -525,47 +333,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     tableBody.addEventListener('click', (e) => {
-        const actionBtn = e.target.closest('.action-btn');
-        const menuItem = e.target.closest('.action-menu-item');
         const studentRow = e.target.closest('tr');
 
-        // Close all other action menus
-        document.querySelectorAll('.actions-menu').forEach(menu => {
-            if (!actionBtn || menu !== actionBtn.nextElementSibling) {
-                menu.style.display = 'none';
-            }
-        });
-
-        if (actionBtn) {
-            e.stopPropagation();
-            const menu = actionBtn.nextElementSibling;
-            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
-        } else if (menuItem) {
-            e.stopPropagation();
-            const studentId = menuItem.closest('td').querySelector('.action-btn').dataset.studentId;
-            const action = menuItem.dataset.action;
-            openModal(action, studentId);
-            menuItem.parentElement.style.display = 'none';
-        } else if (studentRow) {
+        if (studentRow) {
              const studentId = studentRow.dataset.studentId;
              const student = students.find(s => s.id === studentId);
              if (student && student.connectionStatus === 'disconnected') {
                  openReentryPasswordModal(studentId);
-             } else {
-                 openModal('view-details', studentId);
              }
         }
     });
-
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('.action-btn')) {
-            document.querySelectorAll('.actions-menu').forEach(menu => menu.style.display = 'none');
-        }
-    });
-
-    modalConfirmBtn.addEventListener('click', handleConfirm);
-    closeModalBtn.addEventListener('click', closeModal);
-    modalCancelBtn.addEventListener('click', closeModal);
 
     techSupportBtn.addEventListener('click', () => techSupportModal.classList.remove('hidden'));
     dismissSupportModalBtn.addEventListener('click', () => techSupportModal.classList.add('hidden'));
@@ -579,5 +356,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
-
 
